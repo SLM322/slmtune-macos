@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "The camera is used to scan a server or subscription QR code.";
+"NSLocalNetworkUsageDescription" = "Lets the local network (printers, AirPlay) work outside the VPN.";

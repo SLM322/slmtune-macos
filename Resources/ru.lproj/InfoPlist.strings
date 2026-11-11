@@ -1,0 +1,2 @@
+"NSCameraUsageDescription" = "Камера нужна, чтобы отсканировать QR-код сервера или подписки.";
+"NSLocalNetworkUsageDescription" = "Нужно, чтобы локальная сеть (принтеры, AirPlay) работала мимо VPN.";

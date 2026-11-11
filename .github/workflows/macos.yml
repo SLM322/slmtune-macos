@@ -1,0 +1,46 @@
+name: macOS
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_16*.app | sort -V | tail -1)" || true
+          swift --version
+
+      - name: Tests (shared logic)
+        run: swift test 2>&1 | tail -25
+
+      - name: Build SLMtune.app and SLMtune.dmg
+        run: |
+          VERSION="$(echo "${GITHUB_REF_NAME}" | sed -n 's/^v//p')"
+          BUILD_NUMBER="${GITHUB_RUN_NUMBER}" bash scripts/build-app.sh "${VERSION:-4.1}"
+
+      - name: Smoke test on this Mac (cores, configs, Zapret, helper, TUN, kill switch)
+        run: bash scripts/ci-smoke.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SLMtune-macOS
+          path: dist/SLMtune.dmg
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/SLMtune.dmg --title "SLMtune ${GITHUB_REF_NAME#v} для macOS" \
+            --notes-file CHANGELOG.md $([[ "${GITHUB_REF_NAME}" == *beta* ]] && echo --prerelease)

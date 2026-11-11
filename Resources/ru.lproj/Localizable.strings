@@ -1,0 +1,4 @@
+/* SLMtune for iOS — Russian. The Russian texts are the keys themselves (see en.lproj); this file only
+   marks Russian as a supported language. Add an entry here to reword a text without touching the code. */
+
+"Kill switch" = "Kill switch";
