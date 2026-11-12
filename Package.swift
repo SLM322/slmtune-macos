@@ -42,7 +42,7 @@ targets += [
 
 let package = Package(
     name: "SLMtune",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v14)],
     dependencies: dependencies,
     targets: targets
 )
