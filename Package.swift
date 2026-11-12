@@ -21,6 +21,8 @@ dependencies += [
     .package(url: "https://github.com/apple/swift-certificates", from: "1.21.0"),
     .package(url: "https://github.com/apple/swift-crypto", from: "3.0.0"),
     .package(url: "https://github.com/apple/swift-asn1", from: "1.0.0"),
+    // swift-collections 1.6 needs a newer Swift than the Intel CI runners' Xcode 16 (Swift 6.1).
+    .package(url: "https://github.com/apple/swift-collections", "1.1.0"..<"1.6.0"),
 ]
 targets += [
     .executableTarget(
