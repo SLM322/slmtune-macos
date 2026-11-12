@@ -159,3 +159,5 @@ func human(_ bytes: Int64) -> String {
     while v >= 1024, i < units.count - 1 { v /= 1024; i += 1 }
     return i == 0 ? "\(bytes) \(units[0])" : String(format: v >= 100 ? "%.0f %@" : "%.1f %@", v, units[i])
 }
+
+func human(_ bytes: UInt64) -> String { human(Int64(clamping: bytes)) }

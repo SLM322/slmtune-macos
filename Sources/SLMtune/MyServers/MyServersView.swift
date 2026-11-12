@@ -219,8 +219,40 @@ struct MyServerView: View {
     private func usersSection(_ c: MyServerConfig) -> some View {
         let today = ISO8601DateFormatter.string(from: Date(), timeZone: TimeZone(identifier: "UTC")!, formatOptions: [.withFullDate])
         return Section {
-            ForEach(c.users) { u in
-                let usage = c.usage(u)
+            ForEach(c.users) { u in userRow(c, u, today: today) }
+            newUserRow(c)
+        } header: {
+            Text("Пользователи")
+        } footer: {
+            Text("У каждого свои пароли и счётчик трафика. Выключенный или превысивший лимит пользователь не подключится.")
+        }
+        .slmRow()
+    }
+
+    private func usageText(_ c: MyServerConfig, _ u: MyUser) -> String {
+        let usage = c.usage(u)
+        var t = "↑ " + human(Int64(usage.up)) + "  ↓ " + human(Int64(usage.down))
+        if u.limit > 0 { t += " / " + human(Int64(u.limit)) }
+        if !u.expires.isEmpty { t += " · " + L("до %@", u.expires) }
+        return t
+    }
+
+    private func newUserRow(_ c: MyServerConfig) -> some View {
+        HStack {
+            TextField("Имя нового пользователя", text: $newUser).autocorrectionDisabled()
+            Button {
+                do {
+                    try c.addUser(newUser.trimmingCharacters(in: .whitespaces))
+                    newUser = ""
+                    session.changed()
+                    Task { try? await session.applyUsers() }
+                } catch { self.error = error.localizedDescription }
+            } label: { Image(systemName: "plus.circle.fill") }
+            .disabled(newUser.trimmingCharacters(in: .whitespaces).isEmpty || session.busy || !c.anyProtocol)
+        }
+    }
+
+    private func userRow(_ c: MyServerConfig, _ u: MyUser, today: String) -> some View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         Text(u.name).font(.headline)
@@ -228,8 +260,7 @@ struct MyServerView: View {
                         Text(LocalizedStringKey(stateTitle(c.state(u, today: today)))).font(.caption)
                             .foregroundStyle(c.state(u, today: today) == "on" ? Slm.ok : Slm.warn)
                     }
-                    Text("↑ \(human(UInt64(usage.up)))  ↓ \(human(UInt64(usage.down)))" + (u.limit > 0 ? " / \(human(UInt64(u.limit)))" : "")
-                         + (u.expires.isEmpty ? "" : " · " + L("до %@", u.expires)))
+                    Text(usageText(c, u))
                         .font(.caption).foregroundStyle(Slm.text2)
                     HStack {
                         Button("В приложение") {
@@ -273,25 +304,6 @@ struct MyServerView: View {
                     .buttonStyle(.borderless)
                     .font(.footnote)
                 }
-            }
-            HStack {
-                TextField("Имя нового пользователя", text: $newUser).autocorrectionDisabled()
-                Button {
-                    do {
-                        try c.addUser(newUser.trimmingCharacters(in: .whitespaces))
-                        newUser = ""
-                        session.changed()
-                        Task { try? await session.applyUsers() }
-                    } catch { self.error = error.localizedDescription }
-                } label: { Image(systemName: "plus.circle.fill") }
-                .disabled(newUser.trimmingCharacters(in: .whitespaces).isEmpty || session.busy || !c.anyProtocol)
-            }
-        } header: {
-            Text("Пользователи")
-        } footer: {
-            Text("У каждого свои пароли и счётчик трафика. Выключенный или превысивший лимит пользователь не подключится.")
-        }
-        .slmRow()
     }
 
     private func edit(_ c: MyServerConfig, _ u: MyUser, _ f: (inout MyUser) -> Void) {
