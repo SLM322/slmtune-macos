@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-15-intel  # x86 pool: the arm64 macOS runners are short of capacity; the app is built universal anyway
     timeout-minutes: 60
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
